@@ -25,17 +25,23 @@ app.get('/home', (request, response) => {
 });
 
 app.post('/login', (request, response) => {
-    sessionId = uuid();
+    
+    let user = request.body;
+    let username = user.username;
+    let password = user.password;
+    // check credentials and if it is valid 
+
+    sessionId = uuid(); // if successfully authenticated generate session Id
     tokenMap.set(sessionId, '');
-    response.cookie('__user', JSON.stringify({uuid: sessionId}));
+    response.cookie('__user', JSON.stringify({session_Id: sessionId}));
     response.send({
         'message': 'success'
     });
 });
 
-app.post('/postWithCsrf', (request, response) => {
-    console.log(JSON.parse(request.cookies.__user).uuid, 'user', tokenMap.get(JSON.parse(request.cookies.__user).uuid));
-   if (request.body.csrf_token === tokenMap.get(JSON.parse(request.cookies.__user).uuid)) {
+app.post('/submitCardDetails', (request, response) => {
+    console.log(JSON.parse(request.cookies.__user).session_Id, 'user', tokenMap.get(JSON.parse(request.cookies.__user).session_Id));
+   if (request.body.csrf_token === tokenMap.get(JSON.parse(request.cookies.__user).session_Id)) {
     response.send({
         'message': 'success'
     });
@@ -46,11 +52,10 @@ app.post('/postWithCsrf', (request, response) => {
    }
 });
 
-app.get('/csrf', (request, response) => {
+app.get('/getCsrfToken', (request, response) => {
     crypto.randomBytes(48, (err, buffer) => {
         token = buffer.toString('hex');
         tokenMap.set(sessionId, token);
-
         response.send({
             'token': token
         });
